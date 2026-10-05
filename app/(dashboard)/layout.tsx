@@ -12,8 +12,11 @@ export default function DashboardLayout({
   const [time, setTime] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    setMounted(true);
+
     // Function to update the clock
     const updateClock = () => {
       const now = new Date();
@@ -90,7 +93,7 @@ export default function DashboardLayout({
               </div>
             </div>
           ) : (
-            <div className="text-xs text-gray-400 font-medium animate-pulse">
+            <div className="text-xs text-gray-200 font-medium animate-pulse">
               ກຳລັງໂຫລດຂໍ້ມູນລະບົບ...
             </div>
           )}
