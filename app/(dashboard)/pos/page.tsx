@@ -1,13 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import CategoryTabs from "@/components/pos/CategoryTabs";
 import OrderCart from "@/components/pos/OrderCart";
 import PaymentModal from "@/components/pos/PaymentModal";
 import ProductGrid from "@/components/pos/ProductGrid";
 import ProductModal from "@/components/pos/ProductModal";
-import { Category, Product, ProductOption, CartItem } from "@/types/product";
-import { useState } from "react";
 import SuccessAlertModal from "@/components/pos/SuccessAlertModal";
+import { Category, Product, ProductOption, CartItem } from "@/types/product";
+import { ShoppingCart, Utensils, ArrowRight } from "lucide-react";
 
 const MOCK_CATEGORIES: Category[] = [
   { id: "snacks", name: "ເຄື່ອງກິນຫຼີ້ນ" },
@@ -17,13 +18,18 @@ const MOCK_CATEGORIES: Category[] = [
   { id: "milk-tea", name: "ຊານົມ" },
 ];
 
-function POSPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+export default function POSPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    MOCK_CATEGORIES[0].id
+  );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState<boolean>(false);
+
+  // Mobile active tab: "menu" | "cart"
+  const [mobileTab, setMobileTab] = useState<"menu" | "cart">("menu");
 
   const [isSuccessAlertOpen, setIsSuccessAlertOpen] = useState<boolean>(false);
   const [lastPaymentInfo, setLastPaymentInfo] = useState<{
@@ -35,7 +41,7 @@ function POSPage() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSelectProduct = (product: Product) => {
-    setEditingItem(null); // เคลียร์สถานะการแก้ไข
+    setEditingItem(null);
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -46,32 +52,29 @@ function POSPage() {
     setIsModalOpen(true);
   };
 
-  // ฟังก์ชันรับค่าเมื่อกดยืนยันจาก ProductModal
   const handleConfirmOrder = (
     product: Product,
     options: ProductOption,
     quantity: number,
-    itemId?: string,
+    itemId?: string
   ) => {
-    // คำนวณราคาท็อปปิ้ง
     const toppingPrice = (options.toppings?.length || 0) * 4000;
     const unitPrice = product.price + toppingPrice;
     const totalPrice = unitPrice * quantity;
 
-    // สร้าง Unique ID โดยอิงจาก id สินค้า + ความหวาน + น้ำแข็ง + ท็อปปิ้ง
-    const newOptionKey = `${product.id}-${options.sweetness || ""}-${options.ice || ""}-${(options.toppings || []).sort().join(",")}`;
+    const newOptionKey = `${product.id}-${options.sweetness || ""}-${
+      options.ice || ""
+    }-${(options.toppings || []).sort().join(",")}`;
 
     setCartItems((prevItems) => {
       let updatedList = [...prevItems];
 
-      // หากเป็นการแก้ไข ให้เอาอันเก่าออกก่อน
       if (itemId) {
         updatedList = updatedList.filter((item) => item.id !== itemId);
       }
 
-      // เช็กว่ามีรายการใหม่ที่ option ตรงกับอันที่มีอยู่เดิมในตะกร้าหรือไม่
       const existingIndex = updatedList.findIndex(
-        (item) => item.id === newOptionKey,
+        (item) => item.id === newOptionKey
       );
 
       if (existingIndex > -1) {
@@ -95,22 +98,23 @@ function POSPage() {
 
       return updatedList;
     });
+
     setEditingItem(null);
     setSelectedProduct(null);
     setIsModalOpen(false);
   };
 
-  // ฟังก์ชันปรับจำนวนในตะกร้า (+ / -)
   const handleUpdateQuantity = (id: string, delta: number) => {
     setCartItems((prevItems) =>
       prevItems
         .map((item) => {
           if (item.id === id) {
             const newQty = item.quantity + delta;
-            if (newQty < 1) return null; // ถ้าลดเหลือ 0 ให้เตรียมลบออก
+            if (newQty < 1) return null;
 
             const unitPrice =
-              item.product.price + (item.options.toppings?.length || 0) * 4000;
+              item.product.price +
+              (item.options.toppings?.length || 0) * 4000;
             return {
               ...item,
               quantity: newQty,
@@ -119,16 +123,14 @@ function POSPage() {
           }
           return item;
         })
-        .filter((item): item is CartItem => item !== null),
+        .filter((item): item is CartItem => item !== null)
     );
   };
 
-  // ฟังก์ชันลบรายการออกจากตะกร้า
   const handleRemoveItem = (id: string) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // ฟังก์ชันล้างตะกร้า
   const handleClearCart = () => {
     setCartItems([]);
   };
@@ -138,90 +140,175 @@ function POSPage() {
     setEditingItem(null);
   };
 
-  const handlePrintReceipt = (): void => {
-    console.log("ອະນາຄົດ: ລະບົບກຳລັງສັ່ງປິ້ນໃບບິນອັດຕະໂນມັດ...");
-    // ບ່ອນນີ້ເອົາໄວ້ຂຽນ Logic ຕໍ່ກັບເຄື່ອງປິ້ນ Thermal Slip 58mm/80mm ໃນອະນາຄົດ
-  };
-
-  const handleConfirmPayment = (receivedAmount: number, change: number) => {
+  const handleConfirmPayment = (_receivedAmount: number, change: number) => {
     setLastPaymentInfo({
       total: grandTotal,
       change: change,
     });
 
-    handlePrintReceipt();
-
-    
     setCartItems([]);
     setIsPaymentOpen(false);
-    
+    setMobileTab("menu");
     setIsSuccessAlertOpen(true);
   };
 
   return (
-    <div className="flex gap-2 h-full w-full overflow-hidden">
-      {/* ฝั่งซ้าย: ตะกร้าสินค้า (รอสร้าง Component ถัดไป) */}
-      <div className="w-1/2 flex flex-col overflow-hidden bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <OrderCart
-          items={cartItems}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onClearCart={handleClearCart}
-          onEditItem={handleEditCartItem}
-          onCheckout={() => setIsPaymentOpen(true)}
-        />
+    <div className="h-full w-full flex flex-col overflow-hidden relative">
+      {/* Mobile/Tablet Tab Switcher (< lg screens) */}
+      <div className="lg:hidden flex items-center justify-between bg-white border border-gray-200 rounded-xl p-1 mb-2 shrink-0 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setMobileTab("menu")}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            mobileTab === "menu"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <Utensils className="w-3.5 h-3.5" />
+          <span>ເມນູສິນຄ້າ</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileTab("cart")}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+            mobileTab === "cart"
+              ? "bg-amber-500 text-white shadow-xs"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          <span>ຕະກຣ້າ</span>
+          {totalItems > 0 && (
+            <span
+              className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
+                mobileTab === "cart"
+                  ? "bg-white text-amber-600"
+                  : "bg-amber-500 text-white"
+              }`}
+            >
+              {totalItems}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* ฝั่งขวา: เลือกหมวดหมู่ และ รายการสินค้า */}
-      <div className="w-1/2 flex flex-row gap-2 h-full overflow-hidden">
-        {/* พื้นที่แสดงรายการสินค้าตามหมวดหมู่ (ProductGrid) */}
-        <div className="flex-1 bg-white p-4 rounded-lg shadow-sm border border-gray-200 overflow-y-auto">
-          {/* ProductGrid component จะอยู่ตรงนี้ */}
-          <div className="flex-1 bg-white p-3 rounded-lg shadow-sm border border-gray-200 overflow-y-auto">
+      {/* Main Layout Area */}
+      <div className="flex-1 flex gap-2 overflow-hidden min-h-0">
+        {/* Left Side: OrderCart (Desktop: visible always; Mobile: visible when mobileTab === 'cart') */}
+        <div
+          className={`
+            w-full lg:w-[380px] xl:w-[420px] 2xl:w-[460px] h-full overflow-hidden flex flex-col shrink-0
+            ${mobileTab === "cart" ? "flex" : "hidden lg:flex"}
+          `}
+        >
+          <OrderCart
+            items={cartItems}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onClearCart={handleClearCart}
+            onEditItem={handleEditCartItem}
+            onCheckout={() => setIsPaymentOpen(true)}
+            onBackToMenu={() => setMobileTab("menu")}
+          />
+        </div>
+
+        {/* Right Side: ProductGrid & CategoryTabs (Desktop: visible always; Mobile: visible when mobileTab === 'menu') */}
+        <div
+          className={`
+            flex-1 h-full overflow-hidden flex flex-col lg:flex-row gap-2 min-w-0
+            ${mobileTab === "menu" ? "flex" : "hidden lg:flex"}
+          `}
+        >
+          {/* Mobile Category Tabs on Top (< lg screens) */}
+          <div className="lg:hidden shrink-0">
+            <CategoryTabs
+              categories={MOCK_CATEGORIES}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(id) => setSelectedCategory(id)}
+              orientation="horizontal"
+            />
+          </div>
+
+          {/* Product Grid Area */}
+          <div className="flex-1 bg-white p-2.5 sm:p-3.5 rounded-xl shadow-2xs border border-gray-200 overflow-hidden flex flex-col min-w-0">
             <ProductGrid
               selectedCategory={selectedCategory}
               onSelectProduct={handleSelectProduct}
             />
           </div>
+
+          {/* Desktop Category Tabs on Right (>= lg screens) */}
+          <div className="hidden lg:flex h-full shrink-0 w-28 xl:w-32">
+            <CategoryTabs
+              categories={MOCK_CATEGORIES}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(id) => setSelectedCategory(id)}
+              orientation="vertical"
+            />
+          </div>
         </div>
-
-        {/* ปุ่มเลือกหมวดหมู่ */}
-        <div className="h-full">
-          <CategoryTabs
-            categories={MOCK_CATEGORIES}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(id) => setSelectedCategory(id)}
-          />
-        </div>
-
-        <ProductModal
-          key={`${selectedProduct?.id ?? "new"}-${editingItem?.id ?? "draft"}`}
-          product={selectedProduct}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmOrder}
-          initialItem={editingItem}
-        />
-
-        {/* Payment Modal */}
-        <PaymentModal
-          key={isPaymentOpen ? "open" : "closed"}
-          isOpen={isPaymentOpen}
-          grandTotal={grandTotal}
-          totalItems={totalItems}
-          onClose={() => setIsPaymentOpen(false)}
-          onConfirmPayment={handleConfirmPayment}
-        />
-
-        <SuccessAlertModal
-          isOpen={isSuccessAlertOpen}
-          totalAmount={lastPaymentInfo.total}
-          changeAmount={lastPaymentInfo.change}
-          onClose={() => setIsSuccessAlertOpen(false)}
-        />
       </div>
+
+      {/* Mobile Floating Quick-Checkout Bar (< lg screens when in menu tab & cart has items) */}
+      {mobileTab === "menu" && totalItems > 0 && (
+        <div className="lg:hidden absolute bottom-2 left-2 right-2 z-30 animate-in slide-in-from-bottom-2 duration-150">
+          <button
+            type="button"
+            onClick={() => setMobileTab("cart")}
+            className="w-full bg-linear-to-r from-amber-500 to-amber-600 text-white p-3 rounded-2xl shadow-xl flex items-center justify-between cursor-pointer border border-amber-400 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-bold text-xs">
+                {totalItems}
+              </div>
+              <div className="text-left">
+                <span className="text-[10px] text-amber-100 uppercase tracking-wider block font-bold">
+                  ລາຍການໃນຕະກຣ້າ
+                </span>
+                <span className="text-sm font-black tracking-tight">
+                  {grandTotal.toLocaleString()} LAK
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 font-black text-xs bg-white text-amber-700 px-3 py-1.5 rounded-xl shadow-xs">
+              <span>ເບິ່ງຕະກຣ້າ</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Product Customization Modal */}
+      <ProductModal
+        key={`${selectedProduct?.id ?? "new"}-${editingItem?.id ?? "draft"}`}
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmOrder}
+        initialItem={editingItem}
+      />
+
+      {/* Payment Checkout Modal */}
+      <PaymentModal
+        key={isPaymentOpen ? "open" : "closed"}
+        isOpen={isPaymentOpen}
+        grandTotal={grandTotal}
+        totalItems={totalItems}
+        onClose={() => setIsPaymentOpen(false)}
+        onConfirmPayment={handleConfirmPayment}
+      />
+
+      {/* Success Alert Modal */}
+      <SuccessAlertModal
+        key={isSuccessAlertOpen ? "alert-open" : "alert-closed"}
+        isOpen={isSuccessAlertOpen}
+        totalAmount={lastPaymentInfo.total}
+        changeAmount={lastPaymentInfo.change}
+        onClose={() => setIsSuccessAlertOpen(false)}
+      />
     </div>
   );
 }
-
-export default POSPage;

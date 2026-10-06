@@ -48,18 +48,18 @@ export default function PaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-amber-500 text-white p-4 flex justify-between items-center">
-          <h3 className="text-lg font-bold">ຊຳລະເງິນ (Checkout)</h3>
-          <span className="text-xs bg-amber-600 px-2.5 py-1 rounded-full">
+        <div className="bg-amber-500 text-white p-3.5 sm:p-4 flex justify-between items-center shrink-0">
+          <h3 className="text-base sm:text-lg font-bold">ຊຳລະເງິນ (Checkout)</h3>
+          <span className="text-xs bg-amber-600 px-2.5 py-1 rounded-full font-bold">
             {totalItems} ລາຍການ
           </span>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
           {/* ยอดรวมที่ต้องชำระ */}
           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center">
             <span className="text-xs text-gray-500 font-semibold block uppercase">

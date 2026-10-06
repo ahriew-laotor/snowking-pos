@@ -113,17 +113,17 @@ export default function ProductModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-blue-500 text-white p-4 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold">
-              {initialItem ? "ແກ້ໄຂລາຍການ: " : ""}
+        <div className="bg-blue-600 text-white p-3.5 sm:p-4 flex justify-between items-center shrink-0">
+          <div className="pr-2">
+            <h3 className="text-base sm:text-lg font-bold truncate">
+              {initialItem ? "ແກ້ໄຂ: " : ""}
               {product.name}
             </h3>
           </div>
-          <span className="text-xl font-bold bg-blue-600 px-3 py-1 rounded-lg">
+          <span className="text-sm sm:text-lg font-black bg-blue-700/80 px-2.5 sm:px-3 py-1 rounded-xl shrink-0">
             {product.price.toLocaleString()} LAK
           </span>
         </div>

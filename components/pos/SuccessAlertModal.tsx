@@ -23,26 +23,18 @@ export default function SuccessAlertModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // 1. ເລີ່ມຕົ້ນຕັ້ງຄ່າ Countdown ໃໝ່ທຸກຄັ້ງທີ່ເປີດ
-    setCountdown(TOTAL_DURATION);
-
-    // 2. ສ້າງຕົວແປມາເກັບຄ່າປັດຈຸບັນໄວ້ເພື່ອຕິດຕາມໃນ Interval
     let currentSeconds = TOTAL_DURATION;
 
     const interval = setInterval(() => {
       currentSeconds -= 1;
-
-      // ອັບເດດ State ສ້າງ UI Realtime Countdown ຕາມປົກກະຕິ
       setCountdown(currentSeconds);
 
-      // 3. 🚀 ເມື່ອຮອດ 0 ໃຫ້ລ້າງ Interval ຖິ້ມກ່ອນ ແລ້ວຈຶ່ງສັ່ງ onClose()
       if (currentSeconds <= 0) {
         clearInterval(interval);
         onClose();
       }
     }, 1000);
 
-    // 4. ເຄຼຍ Interval ເມື່ອມີການ Unmount ຫຼື ປິດ Modal ກ່ອນກຳນົດ
     return () => clearInterval(interval);
   }, [isOpen, onClose]);
 
