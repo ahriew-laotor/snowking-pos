@@ -119,7 +119,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-screen flex flex-col lg:flex-row select-none overflow-x-hidden bg-gray-50">
       {/* Left Panel — Brand & Decorative (Hidden on mobile / tablet portrait) */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 flex-col items-center justify-center overflow-hidden p-8">
+      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative bg-linear-to-br from-blue-700 via-blue-600 to-indigo-800 flex-col items-center justify-center overflow-hidden p-8">
         {/* Floating decorative orbs */}
         <div className="absolute top-16 left-16 w-72 h-72 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-sky-300/15 rounded-full blur-3xl pointer-events-none" />
@@ -169,7 +169,7 @@ export default function LoginPage() {
                 >
                   {item}
                 </span>
-              )
+              ),
             )}
           </div>
         </div>
@@ -199,8 +199,8 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div
-          className={`w-full max-w-[340px] transition-transform duration-300 ${
-            shake ? "[animation:shake_0.5s_ease-in-out]" : ""
+          className={`w-full max-w-85 transition-transform duration-300 ${
+            shake ? "animate-[shake_0.5s_ease-in-out]" : ""
           }`}
         >
           {/* Lock icon + title */}
@@ -236,8 +236,8 @@ export default function LoginPage() {
                           ? "bg-emerald-500 scale-125 shadow-sm shadow-emerald-400/50"
                           : "bg-blue-600 scale-110 shadow-sm shadow-blue-500/40"
                         : isCurrentSlot && !isSuccess
-                        ? "bg-gray-200 border-2 border-blue-400 scale-105"
-                        : "bg-gray-200 border border-gray-300"
+                          ? "bg-gray-200 border-2 border-blue-400 scale-105"
+                          : "bg-gray-200 border border-gray-300"
                     }`}
                   />
                 );
@@ -327,8 +327,8 @@ export default function LoginPage() {
               {isSuccess
                 ? "ສຳເລັດ ✓"
                 : isLoading
-                ? "ກຳລັງກວດສອບ..."
-                : "ເຂົ້າສູ່ລະບົບ"}
+                  ? "ກຳລັງກວດສອບ..."
+                  : "ເຂົ້າສູ່ລະບົບ"}
             </span>
             {!isLoading && !isSuccess && <ArrowRight className="w-4 h-4" />}
           </button>
