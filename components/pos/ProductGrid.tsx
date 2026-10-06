@@ -43,7 +43,7 @@ export default function ProductGrid({
                 className="
                   flex flex-col justify-between p-2.5 sm:p-3 rounded-xl border border-gray-200 
                   bg-white hover:bg-amber-50/60 hover:border-amber-400 active:scale-95
-                  transition-all duration-150 cursor-pointer select-none text-left min-h-[105px] sm:min-h-[115px] shadow-2xs group
+                  transition-all duration-150 cursor-pointer select-none text-left min-h-26.25 sm:min-h-25.75 shadow-2xs group
                 "
               >
                 <div className="space-y-1">
@@ -75,7 +75,7 @@ export default function ProductGrid({
             ))}
           </div>
         ) : (
-          <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-center p-6 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200/80">
+          <div className="h-full min-h-50 flex flex-col items-center justify-center text-center p-6 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200/80">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
               <PackageOpen className="h-6 w-6 text-gray-400" />
             </div>

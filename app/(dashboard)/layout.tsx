@@ -108,7 +108,7 @@ export default function DashboardLayout({
     } else if (adminPinInput === "888888") {
       setAdminPromptError("ລະຫັດ 888888 ແມ່ນສຳລັບພະນັກງານເທົ່ານັ້ນ! ບໍ່ສາມາດເຂົ້າໜ້າຈັດການສິນຄ້າໄດ້");
     } else {
-      setAdminPromptError("ລະຫັດແອດມິນບໍ່ຖືກຕ້ອງ! ກະລຸນາປ້ອນ 111111");
+      setAdminPromptError("ລະຫັດ Admin ບໍ່ຖືກຕ້ອງ!");
     }
   };
 
@@ -325,13 +325,13 @@ export default function DashboardLayout({
                         }`}
                       >
                         {!isAdmin && <Lock className="w-2.5 h-2.5 inline" />}
-                        {isAdmin ? "Admin" : "ລັອກ (Admin 111111)"}
+                        {isAdmin ? "Admin" : "ລັອກ (ສະເພາະ Admin)"}
                       </span>
                     </div>
                     <span className="text-[11px] text-gray-500 font-medium block">
                       {isAdmin
                         ? "ເພີ່ມ, ແກ້ໄຂ, ແລະ ປັບສະຖານະສິນຄ້າ"
-                        : "ລະຫັດ 888888 ບໍ່ມີສິດເຂົ້າເຖິງ"}
+                        : "ຜູ້ໃຊ້ທົ່ວໄປ ບໍ່ມີສິດເຂົ້າເຖິງ"}
                     </span>
                   </div>
                 </div>
@@ -393,7 +393,7 @@ export default function DashboardLayout({
                     ຢືນຢັນສິດທິແອດມິນ (Admin Only)
                   </h3>
                   <p className="text-[10px] text-amber-100">
-                    ລະຫັດ 888888 ບໍ່ສາມາດເຂົ້າໜ້ານີ້ໄດ້
+                    ຜູ້ໃຊ້ທົ່ວໄປບໍ່ສາມາດເຂົ້າໜ້ານີ້ໄດ້
                   </p>
                 </div>
               </div>
@@ -412,7 +412,7 @@ export default function DashboardLayout({
                   <Lock className="w-6 h-6" />
                 </div>
                 <h4 className="font-bold text-gray-800 text-sm">
-                  ກະລຸນາປ້ອນລະຫັດແອດມິນ (111111)
+                  ກະລຸນາປ້ອນລະຫັດ Admin
                 </h4>
                 <p className="text-xs text-gray-500 mt-1">
                   ໜ້າຈັດການສິນຄ້າຖືກຈຳກັດສິດ ສຳລັບຜູ້ດູແລລະບົບເທົ່ານັ້ນ
@@ -429,7 +429,7 @@ export default function DashboardLayout({
                     setAdminPinInput(e.target.value);
                     setAdminPromptError("");
                   }}
-                  placeholder="ປ້ອນລະຫັດ 6 ຫຼັກ (111111)"
+                  placeholder="ປ້ອນລະຫັດ 6 ຫຼັກ"
                   className="w-full text-center tracking-widest text-lg font-black py-2.5 px-3 rounded-xl border border-gray-300 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                 />
               </div>

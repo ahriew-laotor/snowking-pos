@@ -12,7 +12,7 @@ import { ShoppingCart, Utensils, ArrowRight } from "lucide-react";
 
 const MOCK_CATEGORIES: Category[] = [
   { id: "snacks", name: "ເຄື່ອງກິນຫຼີ້ນ" },
-  { id: "coffee", name: "ປະເພດກາເຟ" },
+  { id: "coffee", name: "ກາເຟ" },
   { id: "ice-cream", name: "ໄອສຄຣີມ" },
   { id: "fruit-tea", name: "ຊາໝາກໄມ້" },
   { id: "milk-tea", name: "ຊານົມ" },
@@ -179,7 +179,7 @@ export default function POSPage() {
           }`}
         >
           <ShoppingCart className="w-3.5 h-3.5" />
-          <span>ຕະກຣ້າ</span>
+          <span>ກະຕ່າ</span>
           {totalItems > 0 && (
             <span
               className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
@@ -199,7 +199,7 @@ export default function POSPage() {
         {/* Left Side: OrderCart (Desktop: visible always; Mobile: visible when mobileTab === 'cart') */}
         <div
           className={`
-            w-full lg:w-[380px] xl:w-[420px] 2xl:w-[460px] h-full overflow-hidden flex flex-col shrink-0
+            w-full lg:w-95 xl:w-105 2xl:w-115 h-full overflow-hidden flex flex-col shrink-0
             ${mobileTab === "cart" ? "flex" : "hidden lg:flex"}
           `}
         >
@@ -265,7 +265,7 @@ export default function POSPage() {
               </div>
               <div className="text-left">
                 <span className="text-[10px] text-amber-100 uppercase tracking-wider block font-bold">
-                  ລາຍການໃນຕະກຣ້າ
+                  ລາຍການໃນກະຕ່າ
                 </span>
                 <span className="text-sm font-black tracking-tight">
                   {grandTotal.toLocaleString()} LAK
@@ -274,7 +274,7 @@ export default function POSPage() {
             </div>
 
             <div className="flex items-center gap-1 font-black text-xs bg-white text-amber-700 px-3 py-1.5 rounded-xl shadow-xs">
-              <span>ເບິ່ງຕະກຣ້າ</span>
+              <span>ເບິ່ງກະຕ່າ</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </button>

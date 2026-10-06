@@ -117,7 +117,7 @@ export default function LoginPage() {
   }, [handleKeyPress, handleDelete, handleClear, handleLogin, pin]);
 
   return (
-    <div className="min-h-screen w-screen flex flex-col lg:flex-row select-none overflow-x-hidden bg-gray-50">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row select-none overflow-x-hidden bg-gray-50">
       {/* Left Panel — Brand & Decorative (Hidden on mobile / tablet portrait) */}
       <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative bg-linear-to-br from-blue-700 via-blue-600 to-indigo-800 flex-col items-center justify-center overflow-hidden p-8">
         {/* Floating decorative orbs */}
@@ -332,59 +332,6 @@ export default function LoginPage() {
             </span>
             {!isLoading && !isSuccess && <ArrowRight className="w-4 h-4" />}
           </button>
-
-          {/* Role Accounts & Quick Test Credentials */}
-          <div className="mt-4 pt-3 border-t border-gray-200/70">
-            <p className="text-[11px] font-bold text-gray-500 text-center mb-2">
-              ລະຫັດເຂົ້າໃຊ້ງານຕາມສິດທິ:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {/* Staff PIN */}
-              <button
-                type="button"
-                onClick={() => handleQuickFill(STAFF_PIN)}
-                className="p-2 rounded-xl bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left group cursor-pointer shadow-2xs"
-                title="ຄລິກເພື່ອປ້ອນ 888888 ອັດຕະໂນມັດ"
-              >
-                <div className="flex items-center gap-1.5 text-gray-700 font-bold text-xs">
-                  <User className="w-3.5 h-3.5 text-blue-500" />
-                  <span>ພະນັກງານ</span>
-                </div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-mono font-black text-xs text-blue-600 tracking-wider">
-                    {STAFF_PIN}
-                  </span>
-                  <span className="text-[9px] text-gray-400 group-hover:text-blue-500 font-medium">
-                    (ໜ້າ POS)
-                  </span>
-                </div>
-              </button>
-
-              {/* Admin PIN */}
-              <button
-                type="button"
-                onClick={() => handleQuickFill(ADMIN_PIN)}
-                className="p-2 rounded-xl bg-white border border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 transition-all text-left group cursor-pointer shadow-2xs"
-                title="ຄລິກເພື່ອປ້ອນ 111111 ອັດຕະໂນມັດ"
-              >
-                <div className="flex items-center gap-1.5 text-gray-800 font-bold text-xs">
-                  <Shield className="w-3.5 h-3.5 text-amber-500" />
-                  <span>ແອດມິນ</span>
-                </div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="font-mono font-black text-xs text-amber-600 tracking-wider">
-                    {ADMIN_PIN}
-                  </span>
-                  <span className="text-[9px] text-amber-500 font-medium">
-                    (+ ສິນຄ້າ)
-                  </span>
-                </div>
-              </button>
-            </div>
-            <p className="text-center text-[10px] text-gray-400 font-medium mt-2">
-              ຮອງຮັບ Touchscreen, ມືຖື, ແທັບເລັດ ແລະ ຄີບອດ
-            </p>
-          </div>
         </div>
       </div>
 

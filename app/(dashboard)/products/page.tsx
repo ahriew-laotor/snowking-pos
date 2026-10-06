@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MOCK_PRODUCTS } from "@/data/products";
 import { Product, Category } from "@/types/product";
@@ -24,17 +24,23 @@ import {
   ArrowLeft,
   KeyRound,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CATEGORIES: Category[] = [
   { id: "all", name: "ທັງໝົດ" },
   { id: "snacks", name: "ເຄື່ອງກິນຫຼີ້ນ" },
-  { id: "coffee", name: "ປະເພດກາເຟ" },
+  { id: "coffee", name: "ກາເຟ" },
   { id: "ice-cream", name: "ໄອສຄຣີມ" },
   { id: "fruit-tea", name: "ຊາໝາກໄມ້" },
   { id: "milk-tea", name: "ຊານົມ" },
 ];
 
 export default function ProductsPage() {
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const router = useRouter();
   const { user, isAdmin, elevateToAdmin } = useAuth();
 
@@ -176,9 +182,68 @@ export default function ProductsPage() {
     } else if (unlockPin === "888888") {
       setUnlockError("ລະຫັດ 888888 ແມ່ນສຳລັບພະນັກງານ! ບໍ່ມີສິດເຂົ້າໜ້າຈັດການສິນຄ້າ");
     } else {
-      setUnlockError("ລະຫັດຜ່ານແອດມິນບໍ່ຖືກຕ້ອງ! ກະລຸນາປ້ອນ 111111");
+      setUnlockError("ລະຫັດຜ່ານ Admin ບໍ່ຖືກຕ້ອງ!");
     }
   };
+
+   if (!isMounted) {
+     return (
+       <div className="flex flex-col h-full w-full bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-200">
+         {/* Header Skeleton */}
+         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+           <div className="flex items-center gap-2">
+             <Skeleton className="w-9 h-9 rounded-xl bg-gray-200" />
+             <div className="space-y-2">
+               <Skeleton className="h-5 w-48 bg-gray-200" />
+               <Skeleton className="h-3 w-64 bg-gray-200" />
+             </div>
+           </div>
+           <Skeleton className="h-10 w-32 rounded-xl bg-gray-200" />
+         </div>
+
+         {/* KPI Cards Skeleton */}
+         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+           {[...Array(3)].map((_, i) => (
+             <div
+               key={i}
+               className="bg-white p-3 rounded-xl border border-gray-200 flex justify-between items-center"
+             >
+               <div className="space-y-2 w-2/3">
+                 <Skeleton className="h-3 w-16 bg-gray-200" />
+                 <Skeleton className="h-7 w-24 bg-gray-200" />
+               </div>
+               <Skeleton className="w-10 h-10 rounded-full bg-gray-200" />
+             </div>
+           ))}
+         </div>
+
+         {/* Table/List Grid Skeleton */}
+         <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+           <div className="flex justify-between items-center mb-4">
+             <Skeleton className="h-8 w-64 bg-gray-200" />
+             <Skeleton className="h-8 w-32 bg-gray-200" />
+           </div>
+           {[...Array(5)].map((_, i) => (
+             <div
+               key={i}
+               className="flex justify-between items-center py-2 border-b border-gray-100"
+             >
+               <div className="flex items-center gap-3 w-1/3">
+                 <Skeleton className="w-9 h-9 rounded-lg bg-gray-200" />
+                 <div className="space-y-1 w-full">
+                   <Skeleton className="h-4 w-3/4 bg-gray-200" />
+                   <Skeleton className="h-3 w-1/2 bg-gray-200" />
+                 </div>
+               </div>
+               <Skeleton className="h-5 w-20 rounded-full bg-gray-200" />
+               <Skeleton className="h-5 w-16 bg-gray-200" />
+               <Skeleton className="h-8 w-16 rounded-lg bg-gray-200" />
+             </div>
+           ))}
+         </div>
+       </div>
+     );
+   }
 
   // Staff Restriction Guard
   if (!isAdmin) {
@@ -193,7 +258,7 @@ export default function ProductsPage() {
               ຈຳກັດສິດທິການເຂົ້າເຖິງ (Admin Only)
             </h2>
             <p className="text-xs text-rose-100 mt-1 max-w-xs">
-              ໜ້າຈັດການສິນຄ້າສະເພາະຜູ້ດູແລລະບົບ (ລະຫັດ 111111) ເທົ່ານັ້ນ
+              ໜ້າຈັດການສິນຄ້າສະເພາະຜູ້ດູແລລະບົບເທົ່ານັ້ນ
             </p>
           </div>
 
@@ -225,7 +290,7 @@ export default function ProductsPage() {
                       setUnlockPin(e.target.value);
                       setUnlockError("");
                     }}
-                    placeholder="ປ້ອນລະຫັດ 111111"
+                    placeholder="ປ້ອນລະຫັດ"
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 font-bold text-center tracking-widest text-base focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                   />
                 </div>
@@ -277,7 +342,7 @@ export default function ProductsPage() {
                   ຈັດການລາຍການສິນຄ້າ (Products)
                 </h1>
                 <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-md border border-amber-300">
-                  Admin (111111)
+                  Admin
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-gray-500 font-medium">
@@ -461,7 +526,7 @@ export default function ProductsPage() {
         ) : viewMode === "table" ? (
           /* Table View — Responsive with horizontal scroll wrapper */
           <div className="flex-1 overflow-x-auto overflow-y-auto">
-            <table className="min-w-[620px] w-full text-left border-collapse">
+            <table className="min-w-155 w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider font-bold sticky top-0 z-10">
                   <th className="py-3 px-4">ສິນຄ້າ (Product)</th>

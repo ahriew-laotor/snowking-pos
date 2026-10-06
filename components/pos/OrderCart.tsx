@@ -63,13 +63,13 @@ export default function OrderCart({
       {/* Items List */}
       <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2.5">
         {items.length === 0 ? (
-          <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-gray-400 space-y-2 p-6 text-center">
+          <div className="h-full min-h-45 flex flex-col items-center justify-center text-gray-400 space-y-2 p-6 text-center">
             <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
               <ShoppingCart className="w-7 h-7 stroke-1" />
             </div>
             <p className="text-sm font-bold text-gray-600">ຍັງບໍ່ມີລາຍການສິນຄ້າ</p>
             <p className="text-xs text-gray-400 max-w-xs">
-              ເລືອກສິນຄ້າຈາກເມນູເພື່ອເພີ່ມລົງໃນຕະກຣ້າ
+              ເລືອກສິນຄ້າຈາກເມນູເພື່ອເພີ່ມລົງໃນກະຕ່າ
             </p>
           </div>
         ) : (
