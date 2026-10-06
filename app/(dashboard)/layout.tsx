@@ -72,7 +72,7 @@ export default function DashboardLayout({
         </div>
 
         <div className="flex items-center space-x-3">
-          {date && time ? (
+          {mounted && date && time ? (
             <div className="flex items-center space-x-4 bg-gray-50 border border-gray-200/60 px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600">
               {/* ວັນການດຳເນີນງານ */}
               <div className="flex items-center gap-1.5">
