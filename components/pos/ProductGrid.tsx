@@ -1,22 +1,26 @@
-"use client";
-
 import { Product } from "@/types/product";
 import { PackageOpen, Sparkles, Plus } from "lucide-react";
-import { MOCK_PRODUCTS } from "@/data/products";
 
 interface ProductGridProps {
   selectedCategory: string;
   onSelectProduct?: (product: Product) => void;
+  products: Product[];
 }
 
 export default function ProductGrid({
   selectedCategory,
   onSelectProduct,
+  products,
 }: ProductGridProps) {
-  // If no category selected, show all products or filter by category
-  const filteredProducts = selectedCategory
-    ? MOCK_PRODUCTS.filter((product) => product.categoryId === selectedCategory)
-    : MOCK_PRODUCTS;
+  // If category selected, filter by category and only show available products
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      !selectedCategory || selectedCategory === "all"
+        ? true
+        : product.categoryId === selectedCategory;
+    const isAvailable = product.available !== false;
+    return matchesCategory && isAvailable;
+  });
 
   return (
     <div className="h-full flex flex-col space-y-2.5 sm:space-y-3">

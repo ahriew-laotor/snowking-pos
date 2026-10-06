@@ -372,7 +372,7 @@ export default function DashboardLayout({
             {/* Modal Footer */}
             <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
               <span className="text-[10px] font-semibold text-gray-400">
-                Snowking POS • ແອດມິນ: 111111 | ພະນັກງານ: 888888
+                Snowking POS
               </span>
             </div>
           </div>

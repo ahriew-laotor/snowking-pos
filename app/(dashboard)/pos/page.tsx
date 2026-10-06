@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CategoryTabs from "@/components/pos/CategoryTabs";
 import OrderCart from "@/components/pos/OrderCart";
 import PaymentModal from "@/components/pos/PaymentModal";
@@ -8,7 +8,9 @@ import ProductGrid from "@/components/pos/ProductGrid";
 import ProductModal from "@/components/pos/ProductModal";
 import SuccessAlertModal from "@/components/pos/SuccessAlertModal";
 import { Category, Product, ProductOption, CartItem } from "@/types/product";
-import { ShoppingCart, Utensils, ArrowRight } from "lucide-react";
+import { ShoppingCart, Utensils, ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { mapProductRow, ProductRow } from "@/lib/product-mapping";
+import { supabase } from "@/lib/supabase";
 
 const MOCK_CATEGORIES: Category[] = [
   { id: "snacks", name: "ເຄື່ອງກິນຫຼີ້ນ" },
@@ -23,6 +25,9 @@ export default function POSPage() {
     MOCK_CATEGORIES[0].id
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
@@ -36,6 +41,38 @@ export default function POSPage() {
     total: number;
     change: number;
   }>({ total: 0, change: 0 });
+
+  const loadProducts = useCallback(async () => {
+    setIsLoadingProducts(true);
+    setProductsError("");
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      setProducts((data ?? []).map((row) => mapProductRow(row as ProductRow)));
+    } catch (error) {
+      setProducts([]);
+      setProductsError(
+        error instanceof Error
+          ? error.message
+          : "Could not load products from Supabase."
+      );
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => void loadProducts(), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadProducts]);
 
   const grandTotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -233,10 +270,33 @@ export default function POSPage() {
 
           {/* Product Grid Area */}
           <div className="flex-1 bg-white p-2.5 sm:p-3.5 rounded-xl shadow-2xs border border-gray-200 overflow-hidden flex flex-col min-w-0">
-            <ProductGrid
-              selectedCategory={selectedCategory}
-              onSelectProduct={handleSelectProduct}
-            />
+            {isLoadingProducts ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-2 text-gray-500">
+                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                <span className="text-sm font-semibold">ກຳລັງໂຫຼດສິນຄ້າ...</span>
+              </div>
+            ) : productsError ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
+                <p className="text-sm font-semibold text-rose-600">
+                  ໂຫຼດລາຍການສິນຄ້າຈາກ Supabase ບໍ່ສຳເລັດ
+                </p>
+                <p className="text-xs text-gray-500">{productsError}</p>
+                <button
+                  type="button"
+                  onClick={() => void loadProducts()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-white hover:bg-amber-600"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  ລອງອີກຄັ້ງ
+                </button>
+              </div>
+            ) : (
+              <ProductGrid
+                products={products}
+                selectedCategory={selectedCategory}
+                onSelectProduct={handleSelectProduct}
+              />
+            )}
           </div>
 
           {/* Desktop Category Tabs on Right (>= lg screens) */}

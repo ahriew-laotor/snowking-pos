@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_PRODUCTS } from "@/data/products";
 import { Product, Category } from "@/types/product";
 import { useAuth, ADMIN_PIN } from "@/lib/auth-context";
+import { mapProductRow, ProductRow } from "@/lib/product-mapping";
 import {
   Plus,
   Search,
@@ -38,15 +39,20 @@ const CATEGORIES: Category[] = [
 export default function ProductsPage() {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    setIsMounted(true);
+    const timeoutId = window.setTimeout(() => setIsMounted(true), 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const router = useRouter();
   const { user, isAdmin, elevateToAdmin } = useAuth();
 
-  const [products, setProducts] = useState<Product[]>(() =>
-    MOCK_PRODUCTS.map((p) => ({ ...p, available: p.available ?? true }))
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
+  const [productsError, setProductsError] = useState("");
+  const [productsLoadError, setProductsLoadError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "available" | "unavailable">("all");
@@ -68,6 +74,36 @@ export default function ProductsPage() {
 
   // Delete Confirmation State
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+
+  const loadProducts = useCallback(async () => {
+    setIsLoadingProducts(true);
+    setProductsError("");
+    setProductsLoadError("");
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
+      if (error) throw error;
+
+      setProducts((data ?? []).map((row) => mapProductRow(row as ProductRow)));
+    } catch (error) {
+      setProducts([]);
+      setProductsLoadError(
+        error instanceof Error ? error.message : "Could not read products from Supabase."
+      );
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const timeoutId = window.setTimeout(() => void loadProducts(), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [isAdmin, loadProducts]);
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
@@ -94,16 +130,35 @@ export default function ProductsPage() {
   const unavailableCount = totalCount - availableCount;
 
   // Toggle Availability
-  const handleToggleAvailable = (id: string) => {
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, available: !item.available } : item
-      )
-    );
+  const handleToggleAvailable = async (product: Product) => {
+    setProductsError("");
+    setUpdatingProductId(product.id);
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .update({ available: product.available === false })
+        .eq("id", product.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+
+      const updatedProduct = mapProductRow(data as ProductRow);
+      setProducts((prev) =>
+        prev.map((item) => (item.id === product.id ? updatedProduct : item))
+      );
+    } catch (error) {
+      setProductsError(
+        error instanceof Error ? error.message : "Could not read the updated product."
+      );
+    } finally {
+      setUpdatingProductId(null);
+    }
   };
 
   // Open Modal for Add
   const handleOpenAddModal = () => {
+    setProductsError("");
     setEditingProduct(null);
     setFormName("");
     setFormPrice("");
@@ -114,6 +169,7 @@ export default function ProductsPage() {
 
   // Open Modal for Edit
   const handleOpenEditModal = (product: Product) => {
+    setProductsError("");
     setEditingProduct(product);
     setFormName(product.name);
     setFormPrice(product.price.toString());
@@ -123,48 +179,76 @@ export default function ProductsPage() {
   };
 
   // Save Add/Edit
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const priceNum = parseFloat(formPrice);
-    if (!formName.trim() || isNaN(priceNum) || priceNum < 0) {
+    if (!formName.trim() || !Number.isFinite(priceNum) || priceNum < 0) {
+      setProductsError("ກະລຸນາກວດຊື່ສິນຄ້າ ແລະ ລາຄາກ່ອນບັນທຶກ");
       return;
     }
 
-    if (editingProduct) {
-      // Update
-      setProducts((prev) =>
-        prev.map((item) =>
-          item.id === editingProduct.id
-            ? {
-                ...item,
-                name: formName.trim(),
-                price: priceNum,
-                categoryId: formCategoryId,
-                available: formAvailable,
-              }
-            : item
-        )
-      );
-    } else {
-      // Create new
-      const newProduct: Product = {
-        id: `p_${Date.now()}`,
-        name: formName.trim(),
-        price: priceNum,
-        categoryId: formCategoryId,
-        available: formAvailable,
-      };
-      setProducts((prev) => [newProduct, ...prev]);
-    }
+    setProductsError("");
+    setIsSavingProduct(true);
+    const productData = {
+      name: formName.trim(),
+      price: priceNum,
+      category_id: formCategoryId,
+      available: formAvailable,
+    };
 
-    setIsModalOpen(false);
+    try {
+      const result = editingProduct
+        ? await supabase
+            .from("products")
+            .update(productData)
+            .eq("id", editingProduct.id)
+            .select("*")
+            .single()
+        : await supabase.from("products").insert(productData).select("*").single();
+      if (result.error) throw result.error;
+
+      const savedProduct = mapProductRow(result.data as ProductRow);
+      setProducts((prev) =>
+        editingProduct
+          ? prev.map((item) =>
+              item.id === editingProduct.id ? savedProduct : item
+            )
+          : [savedProduct, ...prev]
+      );
+      setIsModalOpen(false);
+    } catch (error) {
+      setProductsError(
+        error instanceof Error ? error.message : "Could not read the saved product."
+      );
+    } finally {
+      setIsSavingProduct(false);
+    }
   };
 
   // Delete
-  const handleConfirmDelete = () => {
-    if (deletingProduct) {
+  const handleConfirmDelete = async () => {
+    if (!deletingProduct) return;
+
+    setProductsError("");
+    setIsDeletingProduct(true);
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", deletingProduct.id)
+        .select("id")
+        .single();
+      if (error) throw error;
+
       setProducts((prev) => prev.filter((p) => p.id !== deletingProduct.id));
       setDeletingProduct(null);
+    } catch (error) {
+      setProductsError(
+        error instanceof Error ? error.message : "Could not delete the product."
+      );
+    } finally {
+      setIsDeletingProduct(false);
     }
   };
 
@@ -362,6 +446,15 @@ export default function ProductsPage() {
         </button>
       </div>
 
+      {productsError && !isModalOpen && !deletingProduct && (
+        <div
+          role="alert"
+          className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700"
+        >
+          {productsError}
+        </div>
+      )}
+
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-3 sm:mb-4 shrink-0">
         <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs flex items-center justify-between">
@@ -503,12 +596,31 @@ export default function ProductsPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden flex flex-col min-h-0">
-        {filteredProducts.length === 0 ? (
+        {isLoadingProducts ? (
+          <div className="flex-1 flex items-center justify-center text-sm font-semibold text-gray-500">
+            ກຳລັງໂຫຼດສິນຄ້າຈາກ Supabase...
+          </div>
+        ) : productsLoadError ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+            <p className="text-sm font-semibold text-rose-600">
+              ໂຫຼດສິນຄ້າຈາກ Supabase ບໍ່ສຳເລັດ
+            </p>
+            <p className="text-xs text-gray-500">{productsLoadError}</p>
+            <button
+              type="button"
+              onClick={() => void loadProducts()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              ລອງໂຫຼດອີກຄັ້ງ
+            </button>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-gray-400">
             <Package className="w-12 h-12 text-gray-300 mb-2 stroke-1" />
             <p className="text-sm font-bold text-gray-600">ບໍ່ພົບລາຍການສິນຄ້າ</p>
             <p className="text-xs text-gray-400 mt-1">
-              ລອງປ່ຽນคำค้นหา หรือหมวดหมู่ที่คุณเลือก
+              ລອງປ່ຽນຄຳຄົ້ນຫາ ຫຼື ໝວດໝູ່ທີ່ເຈົ້າເລືອກ
             </p>
             <button
               type="button"
@@ -567,7 +679,8 @@ export default function ProductsPage() {
                       <td className="py-3 px-4 text-center">
                         <button
                           type="button"
-                          onClick={() => handleToggleAvailable(product.id)}
+                          onClick={() => void handleToggleAvailable(product)}
+                          disabled={updatingProductId === product.id}
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer border ${
                             isAvailable
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
@@ -629,7 +742,8 @@ export default function ProductsPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleToggleAvailable(product.id)}
+                        onClick={() => void handleToggleAvailable(product)}
+                        disabled={updatingProductId === product.id}
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
                           isAvailable
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -708,6 +822,14 @@ export default function ProductsPage() {
 
             {/* Modal Form */}
             <form onSubmit={handleSaveProduct} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
+              {productsError && (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700"
+                >
+                  {productsError}
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold text-gray-700 block mb-1">
                   ຊື່ສິນຄ້າ (Product Name) <span className="text-rose-500">*</span>
@@ -785,9 +907,14 @@ export default function ProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="w-2/3 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md cursor-pointer transition-all"
+                  disabled={isSavingProduct}
+                  className="w-2/3 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold text-xs shadow-md cursor-pointer disabled:cursor-wait transition-all"
                 >
-                  {editingProduct ? "ບັນທຶກການແກ້ໄຂ" : "ຢືນຢັນເພີ່ມສິນຄ້າ"}
+                  {isSavingProduct
+                    ? "ກຳລັງບັນທຶກ..."
+                    : editingProduct
+                    ? "ບັນທຶກການແກ້ໄຂ"
+                    : "ຢືນຢັນເພີ່ມສິນຄ້າ"}
                 </button>
               </div>
             </form>
@@ -808,6 +935,11 @@ export default function ProductsPage() {
             <p className="text-xs text-gray-500 mb-4">
               ທ່ານຕ້ອງການລົບລາຍການ &quot;{deletingProduct.name}&quot; ອອກຈາກລະບົບແທ້ບໍ່?
             </p>
+            {productsError && (
+              <p role="alert" className="text-xs font-semibold text-rose-600 mb-3">
+                {productsError}
+              </p>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
@@ -819,9 +951,10 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="w-1/2 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-md cursor-pointer"
+                disabled={isDeletingProduct}
+                className="w-1/2 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white font-bold text-xs shadow-md cursor-pointer disabled:cursor-wait"
               >
-                ລົບສິນຄ້າ
+                {isDeletingProduct ? "ກຳລັງລົບ..." : "ລົບສິນຄ້າ"}
               </button>
             </div>
           </div>
