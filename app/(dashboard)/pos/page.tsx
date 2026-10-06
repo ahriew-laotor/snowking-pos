@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useCallback, useEffect, useState } from "react";
 import CategoryTabs from "@/components/pos/CategoryTabs";
 import OrderCart from "@/components/pos/OrderCart";

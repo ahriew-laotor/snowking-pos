@@ -1,5 +1,8 @@
 "use client";
 
+export const runtime = "edge";
+
+
 import { supabase } from "@/lib/supabase";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
